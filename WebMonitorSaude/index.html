@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Monitor de Saúde</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+  <!-- Google Fonts: Poppins -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    /* ==============================================
+       RESET + GERAL
+    ============================================== */
+    * {
+      font-family: "Poppins", Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(135deg, #e8f0ff, #f4f7fb);
+      display: flex;
+      min-height: 100vh;
+      animation: fadePage 0.6s ease;
+    }
+
+    @keyframes fadePage {
+      from { opacity: 0; transform: scale(1.02); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    /* ==============================================
+       DASHBOARD LAYOUT
+    ============================================== */
+    .dashboard-wrapper {
+      display: flex;
+      width: 100%;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 280px;
+      background: #1f2e4d;
+      color: white;
+      padding: 30px 20px;
+      position: fixed;
+      height: 100%;
+      box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+      z-index: 100;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 40px;
+      color: #3a6df0;
+    }
+
+    .logo i { font-size: 28px; }
+
+    .nav-menu { margin-top: 20px; }
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      color: #bdc3c7;
+      text-decoration: none;
+      border-radius: 12px;
+      margin-bottom: 8px;
+      transition: 0.3s;
+      font-weight: 500;
+    }
+    .nav-link:hover, .nav-link.active {
+      background: #2c3e50;
+      color: white;
+    }
+    .nav-link.logout {
+      color: #e74c3c;
+      margin-top: 50px;
+    }
+    .nav-link.logout:hover {
+      background: #c0392b;
+      color: white;
+    }
+
+    /* CONTEÚDO PRINCIPAL */
+    .main-content {
+      margin-left: 280px;
+      padding: 30px;
+      flex: 1;
+      animation: slideUp 0.5s ease;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .page { animation: slideUp 0.5s ease; }
+
+    /* CARDS */
+    .card {
+      background: white;
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 6px 25px rgba(0,0,0,0.08);
+      margin-bottom: 24px;
+    }
+    .card h3 {
+      color: #1f2e4d;
+      margin-bottom: 16px;
+      font-weight: 600;
+      font-size: 20px;
+    }
+    .card h4 {
+      color: #2c3e50;
+      margin-bottom: 18px;
+      font-weight: 500;
+      font-size: 18px;
+    }
+
+    /* MONITORAMENTO */
+    .monitor-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+    .chart-container {
+      position: relative;
+      height: 300px;
+    }
+    .status-panel {
+      text-align: center;
+      padding: 20px 0;
+    }
+    .status-panel p {
+      margin: 12px 0;
+      font-size: 16px;
+    }
+    .status-panel strong { color: #2c3e50; }
+
+    .leds {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 10px;
+    }
+    .led {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #ddd;
+      display: inline-block;
+      box-shadow: 0 0 8px rgba(0,0,0,0.2);
+    }
+    .led.red { background: #e74c3c; box-shadow: 0 0 15px #e74c3c; }
+    .led.green { background: #27ae60; box-shadow: 0 0 15px #27ae60; }
+    .led.blue { background: #3498db; box-shadow: 0 0 15px #3498db; }
+
+    /* TABELA */
+    .table-container { overflow-x: auto; }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    .data-table th, .data-table td {
+      padding: 12px 10px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+    .data-table th {
+      background: #f8f9fc;
+      color: #2c3e50;
+      font-weight: 600;
+    }
+    .data-table tr:hover { background: #f8f9fc; }
+
+    /* SOBRE */
+    .team-list { padding-left: 20px; margin: 16px 0; }
+    .success { color: #27ae60; font-weight: 600; margin-top: 16px; }
+
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .photo-placeholder {
+      background: #f0f2f5;
+      height: 140px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #777;
+      font-size: 14px;
+      border: 2px dashed #cbd3e1;
+      transition: 0.3s;
+    }
+    .photo-placeholder:hover {
+      border-color: #3a6df0;
+      background: #f0f7ff;
+    }
+
+    .social-links a {
+      margin: 0 12px;
+      color: #3a6df0;
+      text-decoration: none;
+      font-size: 15px;
+    }
+    .social-links a:hover { text-decoration: underline; }
+
+    /* CONFIGURAÇÕES */
+    .status-off { color: #e74c3c; font-weight: 500; }
+    .status-on { color: #27ae60; font-weight: 500; }
+
+    .btn-primary {
+      background: #3a6df0;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.3s;
+      margin-top: 16px;
+    }
+    .btn-primary:hover {
+      background: #2d54c5;
+      transform: scale(1.02);
+    }
+
+    /* ERRO */
+    .error-box {
+      background: #ffe5e5;
+      color: #c01313;
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 12px;
+      text-align: center;
+      font-size: 14px;
+      animation: fadeErr 0.4s ease;
+    }
+    @keyframes fadeErr { from { opacity: 0; } to { opacity: 1; } }
+  </style>
+</head>
+<body>
+
+<div class="dashboard-wrapper">
+
+  <!-- MENU LATERAL -->
+  <aside class="sidebar">
+    <div class="logo">
+      <i class="fas fa-heartbeat"></i>
+      <span>Monitor Saúde</span>
+    </div>
+    <nav class="nav-menu">
+      <a href="#" class="nav-link active" data-page="perfil">
+        <i class="fas fa-user"></i> Perfil
+      </a>
+      <a href="#" class="nav-link" data-page="sobre">
+        <i class="fas fa-info-circle"></i> Sobre
+      </a>
+      <a href="#" class="nav-link" data-page="config">
+        <i class="fas fa-cog"></i> Configurações
+      </a>
+      <a href="#" id="logoutBtn" class="nav-link logout">
+        <i class="fas fa-sign-out-alt"></i> Sair
+      </a>
+    </nav>
+  </aside>
+
+  <!-- CONTEÚDO -->
+  <main class="main-content">
+
+    <!-- PERFIL -->
+    <section id="perfilPage" class="page">
+      <div class="card">
+        <h3><i class="fas fa-user"></i> Perfil do Usuário</h3>
+        <p><strong>Nome:</strong> <span id="userName">Carregando...</span></p>
+        <p><strong>E-mail:</strong> <span id="userEmail">Carregando...</span></p>
+      </div>
+
+      <div class="card">
+        <h4>Monitoramento em Tempo Real</h4>
+        <div class="monitor-grid">
+          <div class="chart-container">
+            <canvas id="healthChart"></canvas>
+          </div>
+          <div class="status-panel">
+            <p><strong>Pressão:</strong> <span id="pressao">---</span> mmHg</p>
+            <p><strong>Pulso:</strong> <span id="pulso">---</span> bpm</p>
+            <p><strong>Status:</strong></p>
+            <div class="leds">
+              <span class="led" id="ledVermelho"></span>
+              <span class="led" id="ledVerde"></span>
+              <span class="led" id="ledAzul"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h4>Histórico de Leituras</h4>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Data/Hora</th>
+                <th>Pressão</th>
+                <th>Pulso</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="historicoBody">
+              <tr><td colspan="4">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- SOBRE -->
+    <section id="sobrePage" class="page d-none">
+      <div class="card">
+        <h3>Sobre o Monitor de Saúde</h3>
+        <p>
+          O <strong>Monitor de Saúde</strong> foi desenvolvido como projeto final da disciplina de 
+          <em>Internet das Coisas</em> pelos alunos:
+        </p>
+        <ul class="team-list">
+          <li><strong>Gabriel Purper</strong></li>
+          <li><strong>Gabriel Roque</strong></li>
+          <li><strong>Pedro Pansa</strong></li>
+        </ul>
+        <p class="success"><strong>Atividade concluída com sucesso!</strong></p>
+
+        <h5>Fotos do Projeto</h5>
+        <div class="photo-grid">
+          <div class="photo-placeholder">Foto 1</div>
+          <div class="photo-placeholder">Foto 2</div>
+          <div class="photo-placeholder">Vídeo Demo</div>
+          <div class="photo-placeholder">+ Adicionar</div>
+        </div>
+
+        <h5 class="mt-4">Redes Sociais</h5>
+        <div class="social-links">
+          <a href="#" target="_blank"><i class="fab fa-github"></i> GitHub</a>
+          <a href="#" target="_blank"><i class="fab fa-linkedin"></i> LinkedIn</a>
+          <a href="#" target="_blank"><i class="fab fa-instagram"></i> Instagram</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONFIGURAÇÕES -->
+    <section id="configPage" class="page d-none">
+      <div class="card">
+        <h3>Configurações do Dispositivo</h3>
+        <p><strong>ESP32:</strong> <span id="espStatus" class="status-off">Desconectado</span></p>
+        <p><strong>Porta:</strong> <span id="portaSerial">---</span></p>
+        <button id="conectarBtn" class="btn-primary">Conectar ESP32</button>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  // === FIREBASE CONFIG ===
+  const firebaseConfig = {
+    apiKey: "AIzaSyDCB4e8wCBDpKFTWRGTLAjBEgVUbcQHQno",
+    authDomain: "monitorsaude-19ead.firebaseapp.com",
+    databaseURL: "https://monitorsaude-19ead-default-rtdb.firebaseio.com",
+    projectId: "monitorsaude-19ead",
+    storageBucket: "monitorsaude-19ead.firebasestorage.app",
+    messagingSenderId: "908296773636",
+    appId: "1:908296773636:web:32b4cc9f847faf01c99551"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  let chart, user = null, port = null;
+
+  // === PROTEGE ACESSO ===
+  firebase.auth().onAuthStateChanged(u => {
+    if (!u) return location.href = "login.html";
+    user = u;
+    document.getElementById("userName").textContent = u.displayName || "Usuário";
+    document.getElementById("userEmail").textContent = u.email;
+    carregarHistorico();
+  });
+
+  // === NAVEGAÇÃO ===
+  document.querySelectorAll('.nav-link').forEach(l => {
+    l.addEventListener('click', e => {
+      e.preventDefault();
+      document.querySelectorAll('.nav-link').forEach(x => x.classList.remove('active'));
+      l.classList.add('active');
+      document.querySelectorAll('.page').forEach(p => p.classList.add('d-none'));
+      document.getElementById(l.dataset.page + 'Page').classList.remove('d-none');
+    });
+  });
+
+  // === LOGOUT ===
+  document.getElementById("logoutBtn").onclick = () => {
+    firebase.auth().signOut().then(() => location.href = "login.html");
+  };
+
+  // === GRÁFICO ===
+  const ctx = document.getElementById('healthChart').getContext('2d');
+  chart = new Chart(ctx, {
+    type: 'line',
+    data: { labels: [], datasets: [
+      { label: 'Pressão (mmHg)', data: [], borderColor: '#e74c3c', tension: 0.3, fill: false },
+      { label: 'Pulso (bpm)', data: [], borderColor: '#27ae60', tension: 0.3, fill: false }
+    ]},
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+
+  // === SERIAL ESP32 ===
+  document.getElementById("conectarBtn").onclick = async () => {
+    try {
+      port = await navigator.serial.requestPort();
+      await port.open({ baudRate: 115200 });
+      document.getElementById("espStatus").textContent = "Conectado";
+      document.getElementById("espStatus").className = "status-on";
+      document.getElementById("portaSerial").textContent = "USB";
+      lerSerial();
+    } catch (e) { alert("Erro: " + e.message); }
+  };
+
+  async function lerSerial() {
+    const reader = port.readable.getReader();
+    const decoder = new TextDecoder();
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      const linha = decoder.decode(value).trim();
+      if (linha.startsWith("DATA:")) {
+        const [p, pul, st] = linha.split(":")[1].split(",");
+        atualizarDashboard(+p, +pul, st);
+        salvarHistorico(+p, +pul, st);
+      }
+    }
+  }
+
+  function atualizarDashboard(p, pul, st) {
+    document.getElementById("pressao").textContent = p;
+    document.getElementById("pulso").textContent = pul;
+    ["Vermelho","Verde","Azul"].forEach(cor => {
+      const el = document.getElementById("led" + cor);
+      el.className = "led" + (st === cor.toUpperCase().slice(0, -1) ? " " + cor.toLowerCase() : "");
+    });
+    const t = new Date().toLocaleTimeString();
+    chart.data.labels.push(t); chart.data.labels = chart.data.labels.slice(-20);
+    chart.data.datasets[0].data.push(p); chart.data.datasets[0].data = chart.data.datasets[0].data.slice(-20);
+    chart.data.datasets[1].data.push(pul); chart.data.datasets[1].data = chart.data.datasets[1].data.slice(-20);
+    chart.update();
+  }
+
+  function salvarHistorico(p, pul, st) {
+    db.ref(`historico/${user.uid}`).push({ pressao: p, pulso: pul, status: st, timestamp: firebase.database.ServerValue.TIMESTAMP });
+  }
+
+  function carregarHistorico() {
+    const tbody = document.getElementById("historicoBody");
+    db.ref(`historico/${user.uid}`).limitToLast(10).on('value', s => {
+      tbody.innerHTML = "";
+      const data = s.val();
+      if (!data) { tbody.innerHTML = "<tr><td colspan='4'>Nenhum dado</td></tr>"; return; }
+      Object.keys(data).reverse().forEach(k => {
+        const d = data[k];
+        const row = `<tr>
+          <td>${new Date(d.timestamp).toLocaleString()}</td>
+          <td>${d.pressao}</td>
+          <td>${d.pulso}</td>
+          <td><strong>${d.status}</strong></td>
+        </tr>`;
+        tbody.innerHTML += row;
+      });
+    });
+  }
+</script>
+
+</body>
+</html>

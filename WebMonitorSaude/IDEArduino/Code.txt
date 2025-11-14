@@ -1,0 +1,23 @@
+// ESP32 - Monitor de Saúde
+// Envia: DATA:120,75,ALTO
+
+#define PIN_PRESSAO A0
+#define PIN_PULSO   A1
+
+void setup() {
+  Serial.begin(115200);
+  delay(1000);
+  Serial.println("ESP32 Monitor de Saúde - Pronto");
+}
+
+void loop() {
+  int pressao = analogRead(PIN_PRESSAO); // Simulado
+  int pulso = 60 + random(30);           // Simulado
+  String status = "MEDIO";
+
+  if (pressao > 700) status = "ALTO";
+  else if (pressao < 300) status = "BAIXO";
+
+  Serial.println("DATA:" + String(pressao) + "," + String(pulso) + "," + status);
+  delay(2000);
+}

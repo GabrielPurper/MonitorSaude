@@ -1,0 +1,181 @@
+/* ------------------------------------------------------------
+   RESET BÁSICO (Para garantir consistência em todos os navegadores)
+------------------------------------------------------------ */
+* {
+    /* Define o novo font-family Poppins, usado no segundo conjunto */
+    font-family: "Poppins", Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* ------------------------------------------------------------
+   ESTILO GERAL DO SITE
+------------------------------------------------------------ */
+
+body {
+    /* Gradiente mais moderno (135deg) do segundo conjunto */
+    background: linear-gradient(135deg, #e8f0ff, #f4f7fb);
+    margin: 0;
+    padding: 0;
+    
+    /* Centraliza o container na tela */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+
+    /* Animação de entrada suave */
+    animation: fadePage 0.6s ease;
+}
+
+@keyframes fadePage {
+    from { opacity: 0; transform: scale(1.02); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* ------------------------------------------------------------
+   CONTAINER CENTRAL (IGUAL LOGIN E CADASTRO)
+------------------------------------------------------------ */
+
+.container {
+    width: 420px;
+    background: #ffffff;
+    /* Padding do segundo conjunto, mais simétrico */
+    padding: 40px 45px;
+    border-radius: 18px;
+    /* Sombra mais pronunciada e elegante do segundo conjunto */
+    box-shadow: 0 6px 30px rgba(0,0,0,0.12);
+    text-align: center; /* Mantido do primeiro conjunto */
+    
+    /* Animação de deslize para cima */
+    animation: slideUp 0.6s ease;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* ------------------------------------------------------------
+   TÍTULOS
+------------------------------------------------------------ */
+
+h2 {
+    text-align: center;
+    /* Cor mais escura do segundo conjunto */
+    color: #1f2e4d;
+    font-size: 28px;
+    /* Aumentei para mais equilíbrio visual, conforme segundo conjunto */
+    margin-bottom: 25px;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+/* ------------------------------------------------------------
+   CAMPOS DE INPUT (LOGIN + CADASTRO)
+------------------------------------------------------------ */
+
+input {
+    width: 100%;
+    /* Altura fixa para todos os campos */
+    height: 50px;
+    /* Padding e margin do segundo conjunto */
+    padding: 0 15px;
+    margin: 12px 0;
+    /* Borda menos grossa e cor mais suave */
+    border: 1px solid #cbd3e1;
+    border-radius: 10px;
+    font-size: 15px;
+    
+    /* Fundo levemente off-white */
+    background: #f9fbff;
+    transition: 0.3s;
+    /* Crucial para padding não distorcer o width */
+    box-sizing: border-box;
+    outline: none;
+}
+
+input:focus {
+    /* Cor de foco mais vibrante e boxShadow do segundo conjunto */
+    border-color: #3a6df0;
+    background: #ffffff;
+    box-shadow: 0 0 6px rgba(58, 109, 240, 0.4);
+    outline: none;
+}
+
+/* ------------------------------------------------------------
+   BOTÕES
+------------------------------------------------------------ */
+
+button {
+    width: 100%;
+    padding: 15px;
+    /* Margin maior do segundo conjunto */
+    margin-top: 18px;
+    border: none;
+    border-radius: 10px;
+    font-size: 17px;
+    /* Cor azul do segundo conjunto */
+    background: #3a6df0;
+    color: white;
+    cursor: pointer;
+    font-weight: 500;
+    transition: 0.3s;
+}
+
+button:hover {
+    /* Cor de hover mais escura e efeito scale para feedback visual */
+    background: #2d54c5;
+    transform: scale(1.02);
+}
+
+/* ------------------------------------------------------------
+   LINKS (Ex: "Já possui conta? Entrar")
+------------------------------------------------------------ */
+
+.link {
+    /* Margin maior do segundo conjunto */
+    margin-top: 18px;
+    display: block;
+    text-align: center;
+    /* Cor do link do segundo conjunto */
+    color: #3a6df0;
+    text-decoration: none;
+    font-size: 14px;
+    transition: 0.3s;
+}
+
+.link:hover {
+    text-decoration: underline;
+    /* Efeito scale no hover */
+    transform: scale(1.03);
+}
+
+.a {
+    /* Garante que links dentro de outros elementos não tenham sublinhado por padrão */
+    text-decoration: none !important;
+}
+
+
+/* ------------------------------------------------------------
+   MENSAGENS DE ERRO (Correspondente ao #erro/Firebase: Error)
+------------------------------------------------------------ */
+
+.error-box {
+    /* Estilo de caixa de erro completo do segundo conjunto */
+    background: #ffe5e5;
+    color: #c01313; /* Cor vermelha forte */
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 12px;
+    text-align: center;
+    font-size: 14px;
+    /* Animação para a caixa de erro */
+    animation: fadeErr 0.4s ease;
+}
+
+@keyframes fadeErr {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
